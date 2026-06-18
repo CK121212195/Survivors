@@ -3,40 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web FPS - Classic Style</title>
+    <title>Perfect Clean FPS</title>
     <style>
-        /* フォントをシンプルでクリーンなものに（GIFの雰囲気に寄せる） */
-        body { margin: 0; overflow: hidden; background-color: #2b2b2b; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; color: white; }
+        /* GIFの雰囲気を完全再現するクリーンなUI設定 */
+        body { margin: 0; overflow: hidden; background-color: #3b3b3b; font-family: 'Segoe UI', system-ui, sans-serif; user-select: none; color: white; }
         
         #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; display: none; }
-        #crosshair { position: absolute; top: 50%; left: 50%; width: 4px; height: 4px; background: rgba(255,255,255,0.8); border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 4px rgba(0,0,0,0.5); }
         
-        /* スコアとタイマー (右上に配置) */
-        #stats-info { position: absolute; top: 30px; right: 40px; display: flex; gap: 30px; text-align: right; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        /* 画面中央の照準 */
+        #crosshair { position: absolute; top: 50%; left: 50%; width: 4px; height: 4px; background: #ffffff; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 6px rgba(0,0,0,0.8); }
+        
+        /* 画面上部のCHARGEゲージ (GIF完全再現) */
+        #charge-container { position: absolute; top: 35px; left: 50%; transform: translateX(-50%); width: 320px; display: flex; flex-direction: column; align-items: center; }
+        #charge-text { font-size: 13px; font-weight: 700; letter-spacing: 8px; margin-bottom: 12px; color: #a0a0a0; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        #charge-bar-bg { width: 100%; height: 3px; background: rgba(255, 255, 255, 0.15); border-radius: 2px; }
+        #charge-bar-fill { width: 0%; height: 100%; background: #aaddff; border-radius: 2px; transition: width 0.1s linear, background-color 0.2s; box-shadow: 0 0 8px rgba(170, 221, 255, 0.5); }
+        #charge-bar-fill.overheat { background: #ff4444; box-shadow: 0 0 10px rgba(255, 68, 68, 0.8); }
+
+        /* 画面左上の操作UI (GIF完全再現) */
+        #controls-info { position: absolute; top: 35px; left: 35px; display: flex; flex-direction: column; gap: 8px; }
+        .control-item { display: flex; align-items: center; color: #bbbbbb; font-size: 11px; font-weight: 700; background: rgba(20, 20, 20, 0.6); padding: 8px 20px 8px 8px; border-radius: 8px; letter-spacing: 1px; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.05); }
+        .icon { width: 24px; height: 24px; background: rgba(255,255,255,0.08); border-radius: 4px; display: inline-flex; justify-content: center; align-items: center; margin-right: 15px; font-size: 12px; border: 1px solid rgba(255,255,255,0.1); color: #fff;}
+
+        /* スコアとタイマー (ゲーム性は維持しつつ邪魔にならない右上に) */
+        #stats-info { position: absolute; top: 35px; right: 40px; display: flex; gap: 40px; text-align: right; }
         .stat-box { display: flex; flex-direction: column; align-items: flex-end; }
-        .stat-label { font-size: 11px; color: #aaa; letter-spacing: 2px; font-weight: bold; }
-        .stat-value { font-size: 32px; font-weight: bold; color: #fff; }
-        #timer.danger { color: #ff5555; animation: blink 0.5s infinite alternate; }
-        @keyframes blink { from { opacity: 1; } to { opacity: 0.5; } }
+        .stat-label { font-size: 11px; color: #888; letter-spacing: 2px; font-weight: 700; margin-bottom: 4px; }
+        .stat-value { font-size: 36px; font-weight: 800; color: #fff; line-height: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        #timer.danger { color: #ff4444; }
 
-        /* 左上の操作UI (GIFの再現) */
-        #controls-info { position: absolute; top: 30px; left: 30px; display: flex; flex-direction: column; gap: 6px; }
-        .control-item { display: flex; align-items: center; color: #ddd; font-size: 10px; font-weight: bold; background: rgba(0,0,0,0.3); padding: 6px 16px 6px 6px; border-radius: 6px; letter-spacing: 1px; backdrop-filter: blur(2px); border: 1px solid rgba(255,255,255,0.05); }
-        .icon { width: 22px; height: 22px; background: rgba(255,255,255,0.1); border-radius: 4px; display: inline-flex; justify-content: center; align-items: center; margin-right: 12px; font-size: 10px; border: 1px solid rgba(255,255,255,0.1); }
-
-        /* 中央上部のCHARGEバー (GIFの再現) */
-        #charge-container { position: absolute; top: 30px; left: 50%; transform: translateX(-50%); width: 350px; display: flex; flex-direction: column; align-items: center; }
-        #charge-text { font-size: 12px; letter-spacing: 6px; margin-bottom: 8px; color: #999; font-weight: bold; }
-        #charge-bar-bg { width: 100%; height: 4px; background: rgba(255, 255, 255, 0.2); border-radius: 2px; }
-        #charge-bar-fill { width: 0%; height: 100%; background: #66bbee; border-radius: 2px; transition: background-color 0.2s; }
-        #charge-bar-fill.overheat { background: #ff4444; box-shadow: 0 0 10px #ff4444; }
-
-        /* メニュー画面 */
-        #menu-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(30, 30, 30, 0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; pointer-events: auto; }
-        .menu-title { font-size: 48px; font-weight: bold; letter-spacing: 8px; margin-bottom: 30px; color: #fff; }
-        .btn { background: #444; border: none; color: #fff; padding: 15px 40px; font-size: 18px; font-weight: bold; cursor: pointer; letter-spacing: 2px; border-radius: 4px; transition: 0.2s; margin: 10px; }
-        .btn:hover { background: #66bbee; color: #000; }
-        #final-score { font-size: 36px; color: #ffaa00; margin-bottom: 30px; display: none; font-weight: bold;}
+        /* 洗練されたメニュー画面 */
+        #menu-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(30, 30, 32, 0.9); backdrop-filter: blur(10px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; pointer-events: auto; }
+        .menu-title { font-size: 56px; font-weight: 900; letter-spacing: 12px; margin-bottom: 40px; color: #fff; }
+        .btn { background: #fff; border: none; color: #000; padding: 18px 48px; font-size: 16px; font-weight: 800; cursor: pointer; letter-spacing: 4px; border-radius: 30px; transition: 0.2s; margin: 10px; }
+        .btn:hover { background: #aaddff; transform: scale(1.05); }
+        #final-score { font-size: 24px; color: #aaa; margin-bottom: 40px; display: none; font-weight: 700; letter-spacing: 2px; }
+        #final-score span { font-size: 48px; color: #fff; display: block; margin-top: 10px; }
     </style>
     <script type="importmap">
         {
@@ -54,7 +56,7 @@
             <div class="control-item"><span class="icon">⌨️</span> MOVE</div>
             <div class="control-item"><span class="icon">🖱️</span> LOOK</div>
             <div class="control-item"><span class="icon" style="color:#ff6666;">🔴</span> FIRE</div>
-            <div class="control-item"><span class="icon">🔒</span> LOCK</div>
+            <div class="control-item"><span class="icon">ESC</span> MENU</div>
         </div>
         <div id="charge-container">
             <div id="charge-text">CHARGE</div>
@@ -67,23 +69,20 @@
     </div>
 
     <div id="menu-layer">
-        <div class="menu-title" id="menu-title">SHOOTER DEMO</div>
-        <div id="final-score">SCORE: <span id="result-score">0</span></div>
+        <div class="menu-title" id="menu-title">CLEAN SHOOTER</div>
+        <div id="final-score">FINAL SCORE<br><span id="result-score">0</span></div>
         <div id="btn-container"></div>
     </div>
 
     <script type="module">
         import * as THREE from 'three';
         import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
-        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-        import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
+        // --- 状態管理 ---
         let gameState = 'MENU';
         let score = 0; let timeLeft = 60.0;
         let weaponHeat = 0; let isOverheated = false;
-        let isFiring = false; let fireTimer = 0; const FIRE_RATE = 0.15; // 連射速度
+        let isFiring = false; let fireTimer = 0; const FIRE_RATE = 0.12;
 
         const hud = document.getElementById('hud');
         const menuLayer = document.getElementById('menu-layer');
@@ -95,145 +94,153 @@
         const chargeBarFill = document.getElementById('charge-bar-fill');
         const chargeText = document.getElementById('charge-text');
 
-        // --- 1. 環境セットアップ (GIFの淡いグレー空間を再現) ---
+        // --- 1. 画質最優先のクリーンなレンダラー ---
+        // 余計なポストプロセスを捨て、ネイティブの強力なアンチエイリアスを使用
         const scene = new THREE.Scene();
         scene.background = new THREE.Color( 0x333333 );
-        scene.fog = new THREE.FogExp2( 0x333333, 0.015 ); // 霞がかった空間
+        scene.fog = new THREE.Fog( 0x333333, 20, 100 ); // 霞を自然なグラデーションに
 
-        const camera = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 0.1, 1000 );
+        const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
         camera.position.y = 1.6;
         
-        const renderer = new THREE.WebGLRenderer( { antialias: true } );
+        const renderer = new THREE.WebGLRenderer( { antialias: true, powerPreference: "high-performance" } );
         renderer.setSize( window.innerWidth, window.innerHeight );
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.setPixelRatio( Math.min(window.devicePixelRatio, 2) ); // 高画質化
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 影を極限まで柔らかく
         document.body.appendChild( renderer.domElement );
 
-        // Bloom (光の溢れ) は控えめに設定
-        const composer = new EffectComposer( renderer );
-        composer.addPass( new RenderPass( scene, camera ) );
-        const bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 0.8, 0.3, 0.6 );
-        composer.addPass( bloomPass );
-        composer.addPass( new OutputPass() );
+        // --- 2. スタジオのような柔らかい照明 ---
+        const hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444, 0.6 );
+        hemiLight.position.set( 0, 20, 0 );
+        scene.add( hemiLight );
 
-        // ライティング
-        scene.add( new THREE.AmbientLight( 0xffffff, 0.4 ) );
         const dirLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
-        dirLight.position.set( 10, 20, 10 );
+        dirLight.position.set( 20, 30, 20 );
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        dirLight.shadow.bias = -0.0001;
         scene.add( dirLight );
 
-        // 床と障害物 (シンプルなブロック)
+        // --- 3. クリーンなステージ構築 ---
         const floorGeo = new THREE.PlaneGeometry( 200, 200 );
-        const floorMat = new THREE.MeshStandardMaterial( { color: 0x4a4a4a, roughness: 0.9 } );
+        const floorMat = new THREE.MeshStandardMaterial( { color: 0x444444, roughness: 1.0, metalness: 0.0 } );
         const floor = new THREE.Mesh( floorGeo, floorMat );
         floor.rotation.x = - Math.PI / 2;
+        floor.receiveShadow = true;
         scene.add( floor );
 
+        // 無機質なブロック
         const boxGeo = new THREE.BoxGeometry( 2, 2, 2 );
-        const boxMat = new THREE.MeshStandardMaterial( { color: 0x666666, roughness: 0.8 } );
-        for ( let i = 0; i < 20; i ++ ) {
+        const boxMat = new THREE.MeshStandardMaterial( { color: 0x555555, roughness: 0.8 } );
+        for ( let i = 0; i < 25; i ++ ) {
             const box = new THREE.Mesh( boxGeo, boxMat );
             box.position.set( (Math.random() - 0.5) * 80, 1, -10 - Math.random() * 60 );
+            box.castShadow = true; box.receiveShadow = true;
             scene.add( box );
         }
 
-        // --- 2. 敵 (オレンジのカプセル) ---
+        // --- 4. ポップで滑らかな敵 (GIF完全再現) ---
         const enemies = [];
-        const enemyGeo = new THREE.CapsuleGeometry( 0.6, 1.2, 8, 16 );
-        // 個別に光らせるためマテリアルはベースを用意してクローンする
-        const baseEnemyMat = new THREE.MeshStandardMaterial( { color: 0xff6622, emissive: 0x441100, roughness: 0.4 } );
+        // CapsuleGeometryで丸みのある綺麗なカプセル型に
+        const enemyGeo = new THREE.CapsuleGeometry( 0.6, 1.2, 16, 32 );
+        const baseEnemyMat = new THREE.MeshStandardMaterial( { 
+            color: 0xff5522, // 鮮やかなオレンジ
+            roughness: 0.2,  // 少しツヤを持たせる
+            metalness: 0.1
+        } );
 
-        function spawnEnemy() {
+        function spawnEnemy(x, z) {
             const enemy = new THREE.Mesh( enemyGeo, baseEnemyMat.clone() );
-            enemy.position.set( (Math.random() - 0.5) * 50, 1.2, -15 - Math.random() * 40 );
-            // 敵にHPを持たせる (3発当たると倒れる)
+            enemy.position.set( x || (Math.random() - 0.5) * 60, 1.2, z || -15 - Math.random() * 40 );
+            enemy.castShadow = true;
             enemy.userData = { active: true, hp: 3, hitTimer: 0 };
             scene.add( enemy );
             enemies.push( enemy );
         }
         for(let i=0; i<8; i++) spawnEnemy();
 
-        // --- 3. 武器 (丸みのある青い大砲) ---
+        // --- 5. 美しい大砲 (GIFの右下の武器) ---
         const weaponGroup = new THREE.Group();
-        const weaponGeo = new THREE.CylinderGeometry( 0.35, 0.45, 2.0, 32 );
-        weaponGeo.rotateX( Math.PI / 2 );
-        const weaponMat = new THREE.MeshStandardMaterial( { color: 0x3388ff, roughness: 0.3, metalness: 0.2 } );
-        const weaponMesh = new THREE.Mesh( weaponGeo, weaponMat );
-        // 右下に大きく配置
-        weaponMesh.position.set( 0.8, -0.5, -1.2 );
         
-        // 銃口のリング
-        const muzzleGeo = new THREE.TorusGeometry( 0.35, 0.05, 16, 32 );
-        const muzzleMat = new THREE.MeshStandardMaterial( { color: 0xaaaaaa } );
+        // 武器のメインバレル (滑らかで太いカプセル型)
+        const weaponGeo = new THREE.CapsuleGeometry( 0.4, 1.5, 32, 32 );
+        weaponGeo.rotateX( Math.PI / 2 );
+        const weaponMat = new THREE.MeshStandardMaterial( { color: 0x44aaff, roughness: 0.2, metalness: 0.1 } );
+        const weaponMesh = new THREE.Mesh( weaponGeo, weaponMat );
+        weaponMesh.position.set( 0.9, -0.6, -1.2 ); // 右下に配置
+        weaponMesh.castShadow = true;
+        
+        // 銃口の白い縁取り
+        const muzzleGeo = new THREE.TorusGeometry( 0.4, 0.08, 16, 32 );
+        const muzzleMat = new THREE.MeshStandardMaterial( { color: 0xffffff, roughness: 0.5 } );
         const muzzle = new THREE.Mesh( muzzleGeo, muzzleMat );
-        muzzle.position.set( 0, 0, -1.0 );
+        muzzle.position.set( 0, 0, -1.1 );
         weaponMesh.add( muzzle );
 
         weaponGroup.add( weaponMesh );
         camera.add( weaponGroup );
         scene.add( camera );
 
-        // --- 4. 弾丸 (光弾) と エフェクト ---
+        // --- 6. 光弾と破裂パーティクル ---
         const projectiles = [];
-        const projGeo = new THREE.CapsuleGeometry( 0.1, 0.5, 4, 8 );
-        projGeo.rotateX( Math.PI / 2 );
-        const projMat = new THREE.MeshBasicMaterial( { color: 0xffaa55 } ); // オレンジの光弾
+        const projGeo = new THREE.SphereGeometry( 0.15, 16, 16 ); // 丸い光の弾
+        const projMat = new THREE.MeshBasicMaterial( { color: 0xffaa55 } ); // 光沢のあるオレンジ
 
         function fireProjectile() {
             if(isOverheated) return;
 
-            weaponHeat += 8;
+            weaponHeat += 6;
             if (weaponHeat >= 100) {
                 isOverheated = true; weaponHeat = 100;
                 chargeText.innerText = "OVERHEATED"; chargeText.style.color = "#ff4444";
                 chargeBarFill.classList.add('overheat');
             }
 
-            // 武器の反動
-            weaponMesh.position.z += 0.15;
+            // 武器の心地よい反動
+            weaponMesh.position.z += 0.2;
             weaponMesh.rotation.x -= 0.05;
 
-            // 弾丸の生成と発射
+            // 弾の発射
             const bullet = new THREE.Mesh( projGeo, projMat );
-            // カメラ座標系での銃口の位置
-            const startPos = new THREE.Vector3( 0.8, -0.4, -2.0 );
+            const startPos = new THREE.Vector3( 0.9, -0.6, -2.5 );
             camera.localToWorld( startPos );
             bullet.position.copy( startPos );
             
-            // 画面中央に向かって飛ばす
             const target = new THREE.Vector3( 0, 0, -50 );
             camera.localToWorld( target );
             bullet.lookAt( target );
             
-            // 飛ぶ方向と速度
-            const velocity = new THREE.Vector3( 0, 0, -1 ).applyQuaternion( bullet.quaternion ).multiplyScalar( 80 );
+            const velocity = new THREE.Vector3( 0, 0, -1 ).applyQuaternion( bullet.quaternion ).multiplyScalar( 100 ); // 弾速を向上
             
             scene.add( bullet );
-            projectiles.push( { mesh: bullet, velocity: velocity, life: 2.0 } );
+            projectiles.push( { mesh: bullet, velocity: velocity, life: 1.5 } );
         }
 
-        // 破裂パーティクル
+        // 破裂パーティクル (汚い四角ではなく、綺麗な丸い破片に)
         const particles = [];
-        const partGeo = new THREE.BoxGeometry( 0.2, 0.2, 0.2 );
+        const partGeo = new THREE.SphereGeometry( 0.15, 8, 8 );
         function createExplosion( pos ) {
-            const mat = new THREE.MeshBasicMaterial( { color: 0xff8833 } );
-            for(let i=0; i<20; i++) {
+            const mat = new THREE.MeshStandardMaterial( { color: 0xff5522, roughness: 0.2 } );
+            for(let i=0; i<25; i++) {
                 const mesh = new THREE.Mesh( partGeo, mat );
                 mesh.position.copy( pos );
-                const vel = new THREE.Vector3((Math.random()-0.5)*2, Math.random()*2, (Math.random()-0.5)*2).normalize().multiplyScalar(10 + Math.random()*15);
+                const vel = new THREE.Vector3((Math.random()-0.5)*2, Math.random()*2, (Math.random()-0.5)*2).normalize().multiplyScalar(8 + Math.random()*12);
                 scene.add( mesh );
                 particles.push( { mesh, vel, life: 1.0 } );
             }
         }
 
-        // --- 5. 入力とメニュー制御 ---
+        // --- 7. コントロールとメニュー ---
         const controls = new PointerLockControls( camera, document.body );
         
         function setMenu(state) {
             btnContainer.innerHTML = '';
             finalScoreDisplay.style.display = 'none';
             if(state === 'START') {
-                menuTitle.innerText = "SHOOTER DEMO";
-                const btn = document.createElement('button'); btn.className = 'btn'; btn.innerText = 'START';
+                menuTitle.innerText = "CLEAN SHOOTER";
+                const btn = document.createElement('button'); btn.className = 'btn'; btn.innerText = 'START GAME';
                 btn.onclick = () => { startGame(); controls.lock(); }; btnContainer.appendChild(btn);
             } else if(state === 'PAUSE') {
                 menuTitle.innerText = "PAUSED";
@@ -256,18 +263,17 @@
         document.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = true; });
         document.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = false; });
 
-        // マウス押しっぱなしで連射
         document.addEventListener('mousedown', e => { if(e.button === 0 && gameState === 'PLAYING') isFiring = true; });
         document.addEventListener('mouseup', e => { if(e.button === 0) isFiring = false; });
 
         function startGame() {
             score = 0; timeLeft = 60.0; weaponHeat = 0; isOverheated = false; isFiring = false;
-            scoreVal.innerText = score; chargeText.innerText = "CHARGE"; chargeText.style.color = "#999"; chargeBarFill.classList.remove('overheat');
+            scoreVal.innerText = score; chargeText.innerText = "CHARGE"; chargeText.style.color = "#a0a0a0"; chargeBarFill.classList.remove('overheat');
             enemies.forEach(e => scene.remove(e)); enemies.length = 0;
             for(let i=0; i<8; i++) spawnEnemy();
         }
 
-        // --- 6. メインループ ---
+        // --- 8. メインループ ---
         const clock = new THREE.Clock();
         const velocity = new THREE.Vector3(); const direction = new THREE.Vector3();
 
@@ -276,7 +282,6 @@
             const delta = clock.getDelta();
 
             if (gameState === 'PLAYING') {
-                // タイマー処理
                 timeLeft -= delta;
                 if(timeLeft <= 0) {
                     timeLeft = 0; gameState = 'GAMEOVER'; document.exitPointerLock();
@@ -286,7 +291,6 @@
                 if(timeLeft <= 10) timeVal.parentElement.id = 'timer', timeVal.parentElement.classList.add('danger');
                 else timeVal.parentElement.classList.remove('danger');
 
-                // プレイヤー移動
                 velocity.x -= velocity.x * 10.0 * delta; velocity.z -= velocity.z * 10.0 * delta;
                 direction.z = Number(keys.w) - Number(keys.s); direction.x = Number(keys.d) - Number(keys.a); direction.normalize();
                 const speed = 50.0;
@@ -294,40 +298,39 @@
                 if (keys.a || keys.d) velocity.x -= direction.x * speed * delta;
                 controls.moveRight(-velocity.x * delta); controls.moveForward(-velocity.z * delta);
 
-                // 射撃・熱管理
                 if(isFiring && !isOverheated) {
                     fireTimer -= delta;
                     if(fireTimer <= 0) { fireProjectile(); fireTimer = FIRE_RATE; }
                 } else {
-                    if(weaponHeat > 0) weaponHeat -= delta * 40;
+                    if(weaponHeat > 0) weaponHeat -= delta * 50; // 冷却を少し早く
                     if(weaponHeat <= 0) {
                         weaponHeat = 0; isOverheated = false;
-                        chargeText.innerText = "CHARGE"; chargeText.style.color = "#999";
+                        chargeText.innerText = "CHARGE"; chargeText.style.color = "#a0a0a0";
                         chargeBarFill.classList.remove('overheat');
                     }
                 }
                 chargeBarFill.style.width = `${weaponHeat}%`;
 
-                // 弾丸の移動と当たり判定
+                // 弾丸の処理
                 for(let i = projectiles.length - 1; i >= 0; i--) {
                     const p = projectiles[i];
                     p.mesh.position.addScaledVector(p.velocity, delta);
                     p.life -= delta;
 
                     let hit = false;
-                    // 敵との衝突判定 (簡易的な距離判定)
                     for(let j = 0; j < enemies.length; j++) {
                         const enemy = enemies[j];
                         if(!enemy.userData.active) continue;
                         
-                        if(p.mesh.position.distanceTo(enemy.position) < 1.5) {
+                        // ヒット判定
+                        if(p.mesh.position.distanceTo(enemy.position) < 1.4) {
                             hit = true;
                             enemy.userData.hp--;
                             
-                            // 【+ ENEMY REACTION】白く光って少し潰れる
-                            enemy.material.emissive.setHex(0xffffff);
-                            enemy.scale.set(1.3, 0.7, 1.3);
-                            enemy.userData.hitTimer = 0.1; // 0.1秒後に元に戻す
+                            // 被弾リアクション（白く光ってグシャっと潰れる）
+                            enemy.material = new THREE.MeshBasicMaterial({color: 0xffffff}); // 完全に白く発光
+                            enemy.scale.set(1.4, 0.6, 1.4); // 横に広がり縦に潰れる
+                            enemy.userData.hitTimer = 0.1;
 
                             if(enemy.userData.hp <= 0) {
                                 enemy.userData.active = false;
@@ -335,48 +338,52 @@
                                 createExplosion(enemy.position);
                                 score += 100; timeLeft = Math.min(timeLeft + 2.0, 99.9);
                                 scoreVal.innerText = score;
-                                setTimeout(spawnEnemy, 1000);
+                                setTimeout(() => spawnEnemy(), 1000);
                             }
                             break;
                         }
                     }
-
                     if(hit || p.life <= 0) { scene.remove(p.mesh); projectiles.splice(i, 1); }
                 }
 
-                // 敵のリアクション戻し処理
+                // 敵のリアクション（潰れ）を滑らかに戻す
                 enemies.forEach(enemy => {
-                    if(enemy.userData.active && enemy.userData.hitTimer > 0) {
-                        enemy.userData.hitTimer -= delta;
-                        if(enemy.userData.hitTimer <= 0) {
-                            enemy.material.emissive.setHex(0x441100);
-                            enemy.scale.set(1, 1, 1);
+                    if(enemy.userData.active) {
+                        if(enemy.userData.hitTimer > 0) {
+                            enemy.userData.hitTimer -= delta;
+                            if(enemy.userData.hitTimer <= 0) {
+                                enemy.material = baseEnemyMat; // 元の質感に戻す
+                            }
+                        } else {
+                            // ゴムのように滑らかに元の形（スケール1）に戻る
+                            enemy.scale.lerp(new THREE.Vector3(1, 1, 1), delta * 15);
                         }
                     }
                 });
 
-                // 武器のリコイル戻し
-                if(weaponMesh.position.z > -1.2) weaponMesh.position.z -= delta * 2;
-                if(weaponMesh.rotation.x < 0) weaponMesh.rotation.x += delta;
+                // 武器の滑らかなリコイル戻し
+                if(weaponMesh.position.z > -1.2) weaponMesh.position.z -= delta * 3;
+                if(weaponMesh.rotation.x < 0) weaponMesh.rotation.x += delta * 2;
             }
 
-            // パーティクルの更新
+            // パーティクルの処理
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
                 p.life -= delta * 1.5;
-                p.vel.y -= 20 * delta;
+                p.vel.y -= 25 * delta; // 重力
                 p.mesh.position.addScaledVector(p.vel, delta);
-                p.mesh.scale.setScalar(p.life);
+                p.mesh.scale.setScalar(Math.max(0, p.life));
                 if (p.life <= 0) { scene.remove(p.mesh); particles.splice(i, 1); }
             }
 
-            composer.render();
+            // Composerを捨ててネイティブ描画（ジャギジャギにならない）
+            renderer.render(scene, camera);
         }
         animate();
 
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight); composer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(window.innerWidth, window.innerHeight);
         });
     </script>
 </body>
